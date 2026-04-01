@@ -1,0 +1,14 @@
+{
+	"node": "n8n-nodes-svix-webhook-verify.svixWebhookVerify",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "Communication"],
+	"resources": {
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.svix.com/receiving/verifying-payloads/how"
+			}
+		]
+	},
+	"alias": ["svix", "clerk", "webhook", "webhook verification", "signature", "clerk webhook"]
+}

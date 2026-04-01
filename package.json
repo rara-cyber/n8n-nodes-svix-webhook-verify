@@ -1,0 +1,63 @@
+{
+  "name": "n8n-nodes-svix-webhook-verify",
+  "version": "0.1.7",
+  "description": "n8n community node that receives and verifies Svix webhook signatures (Clerk, etc.)",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n-nodes",
+    "n8n",
+    "svix",
+    "clerk",
+    "webhook",
+    "webhook-verification"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/rara-cyber/n8n-nodes-svix-webhook-verify#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rara-cyber/n8n-nodes-svix-webhook-verify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rara-cyber/n8n-nodes-svix-webhook-verify/issues"
+  },
+  "author": {
+    "name": "SIÁN OÜ"
+  },
+  "engines": {
+    "node": ">=18.10"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "n8n-node build",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "test": "jest --config jest.config.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/SvixWebhookApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/SvixWebhookVerify/SvixWebhookVerify.node.js"
+    ]
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "dependencies": {
+    "svix": "^1.44.0"
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "*",
+    "@types/node": "^24.0.1",
+    "eslint": "^9.32.0",
+    "gulp": "^4.0.2",
+    "typescript": "5.9.2"
+  }
+}
