@@ -91,3 +91,7 @@ The node outputs the verified webhook payload with additional metadata fields:
 ## License
 
 MIT
+
+---
+
+Built by [SIÁN Agency](https://www.sian-agency.online)

@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-svix-webhook-verify",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "n8n community node that receives and verifies Svix webhook signatures (Clerk, etc.)",
   "keywords": [
     "n8n-community-node-package",
@@ -21,7 +21,8 @@
     "url": "https://github.com/rara-cyber/n8n-nodes-svix-webhook-verify/issues"
   },
   "author": {
-    "name": "SIÁN OÜ"
+    "name": "SIÁN Agency",
+    "url": "https://www.sian-agency.online"
   },
   "engines": {
     "node": ">=18.10"
