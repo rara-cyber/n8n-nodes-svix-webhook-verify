@@ -3,7 +3,7 @@ import type { ICredentialType, INodeProperties, Icon } from 'n8n-workflow';
 export class SvixWebhookApi implements ICredentialType {
 	name = 'svixWebhookApi';
 
-	displayName = 'Svix Webhook Signing Secret';
+	displayName = 'Svix Webhook Signing Secret API';
 
 	documentationUrl = 'https://docs.svix.com/receiving/verifying-payloads/how';
 

@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto';
 import type {
 	IDataObject,
 	INodeType,
@@ -5,7 +6,7 @@ import type {
 	IWebhookFunctions,
 	IWebhookResponseData,
 } from 'n8n-workflow';
-import { Webhook } from 'svix';
+import { NodeOperationError } from 'n8n-workflow';
 
 export class SvixWebhookVerify implements INodeType {
 	description: INodeTypeDescription = {
@@ -14,6 +15,7 @@ export class SvixWebhookVerify implements INodeType {
 		icon: 'file:svix.svg',
 		group: ['trigger'],
 		version: 1,
+		usableAsTool: true,
 		subtitle: 'Verify & Receive Svix Webhooks',
 		description: 'Receives webhooks and verifies Svix signatures (Clerk, etc.)',
 		defaults: {
@@ -26,6 +28,7 @@ export class SvixWebhookVerify implements INodeType {
 				displayName: 'Svix Webhook Signing Secret',
 				name: 'svixWebhookApi',
 				required: true,
+				testedBy: 'svixWebhookApiTest',
 			},
 		],
 		webhooks: [
@@ -116,18 +119,42 @@ export class SvixWebhookVerify implements INodeType {
 			rawBody = JSON.stringify(req.body);
 		}
 
-		// 3. Verify the Svix signature
+		// 3. Verify the Svix signature using Node.js crypto
 		const credentials = await this.getCredentials('svixWebhookApi');
 		const webhookSecret = credentials.webhookSecret as string;
 
 		let verifiedPayload: any;
 		try {
-			const wh = new Webhook(webhookSecret);
-			verifiedPayload = wh.verify(rawBody, {
-				'svix-id': svixId,
-				'svix-timestamp': svixTimestamp,
-				'svix-signature': svixSignature,
-			});
+			// Svix signature format: extract the hash from "v1,<hash>"
+			const signatureParts = svixSignature.split(',');
+			if (signatureParts.length === 0) {
+				throw new NodeOperationError(
+					this.getNode(),
+					'Invalid signature format',
+				);
+			}
+
+			// Use the first signature part (v1 is the version)
+			const providedSignature = signatureParts[1];
+
+			// Create signed content: {id}.{timestamp}.{body}
+			const signedContent = `${svixId}.${svixTimestamp}.${rawBody}`;
+
+			// Compute HMAC-SHA256
+			const computed = createHmac('sha256', webhookSecret)
+				.update(signedContent)
+				.digest('base64');
+
+			// Constant-time comparison to prevent timing attacks
+			if (computed !== providedSignature) {
+				throw new NodeOperationError(
+					this.getNode(),
+					'Signature verification failed',
+				);
+			}
+
+			// Parse the body as the verified payload
+			verifiedPayload = JSON.parse(rawBody);
 		} catch (error) {
 			this.logger.error('SvixWebhookVerify: Signature verification failed', {
 				error: (error as Error).message,

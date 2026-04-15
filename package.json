@@ -51,9 +51,7 @@
   "peerDependencies": {
     "n8n-workflow": "*"
   },
-  "dependencies": {
-    "svix": "^1.44.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@n8n/node-cli": "*",
     "@types/node": "^24.0.1",
