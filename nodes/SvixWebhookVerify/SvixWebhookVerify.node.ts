@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import type {
 	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
@@ -172,30 +172,45 @@ export class SvixWebhookVerify implements INodeType {
 		const credentials = await this.getCredentials('svixWebhookApi');
 		const webhookSecret = credentials.webhookSecret as string;
 
+		// Svix secrets are "whsec_<base64>" — strip prefix and decode to raw bytes
+		const secretBase64 = webhookSecret.startsWith('whsec_')
+			? webhookSecret.slice('whsec_'.length)
+			: webhookSecret;
+		const secretBytes = Buffer.from(secretBase64, 'base64');
+
 		let verifiedPayload: any;
 		try {
-			// Svix signature format: extract the hash from "v1,<hash>"
-			const signatureParts = svixSignature.split(',');
-			if (signatureParts.length === 0) {
+			// Svix signature format: "v1,<base64hash>" (may contain multiple comma-separated sigs)
+			const signatures = svixSignature.split(' ');
+			const providedHashes = signatures.map((sig) => {
+				const parts = sig.split(',');
+				return parts[1];
+			});
+
+			if (providedHashes.length === 0 || !providedHashes[0]) {
 				throw new NodeOperationError(
 					this.getNode(),
 					'Invalid signature format',
 				);
 			}
 
-			// Use the first signature part (v1 is the version)
-			const providedSignature = signatureParts[1];
-
 			// Create signed content: {id}.{timestamp}.{body}
 			const signedContent = `${svixId}.${svixTimestamp}.${rawBody}`;
 
-			// Compute HMAC-SHA256
-			const computed = createHmac('sha256', webhookSecret)
+			// Compute HMAC-SHA256 using decoded secret bytes
+			const computed = createHmac('sha256', secretBytes)
 				.update(signedContent)
 				.digest('base64');
 
-			// Constant-time comparison to prevent timing attacks
-			if (computed !== providedSignature) {
+			// Check if computed signature matches any of the provided signatures
+			const matched = providedHashes.some((hash) => {
+				if (!hash) return false;
+				const expected = Buffer.from(computed, 'base64');
+				const actual = Buffer.from(hash, 'base64');
+				return expected.length === actual.length && timingSafeEqual(expected, actual);
+			});
+
+			if (!matched) {
 				throw new NodeOperationError(
 					this.getNode(),
 					'Signature verification failed',
