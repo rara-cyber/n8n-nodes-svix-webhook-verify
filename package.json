@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-svix-webhook-verify",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "n8n community node that receives and verifies Svix webhook signatures (Clerk, etc.)",
   "keywords": [
     "n8n-community-node-package",
