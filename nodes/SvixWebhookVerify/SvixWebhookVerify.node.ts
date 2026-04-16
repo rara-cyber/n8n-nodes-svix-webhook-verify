@@ -1,6 +1,10 @@
 import { createHmac } from 'crypto';
 import type {
+	ICredentialDataDecryptedObject,
+	ICredentialTestFunctions,
+	ICredentialsDecrypted,
 	IDataObject,
+	INodeCredentialTestResult,
 	INodeType,
 	INodeTypeDescription,
 	IWebhookFunctions,
@@ -85,6 +89,51 @@ export class SvixWebhookVerify implements INodeType {
 				],
 			},
 		],
+	};
+
+	methods = {
+		credentialTest: {
+			async svixWebhookApiTest(
+				this: ICredentialTestFunctions,
+				credential: ICredentialsDecrypted<ICredentialDataDecryptedObject>,
+			): Promise<INodeCredentialTestResult> {
+				const webhookSecret = credential.data!.webhookSecret as string;
+
+				if (!webhookSecret) {
+					return {
+						status: 'Error',
+						message: 'Webhook signing secret is required.',
+					};
+				}
+
+				if (!webhookSecret.startsWith('whsec_')) {
+					return {
+						status: 'Error',
+						message:
+							'Invalid secret format. Svix webhook secrets start with "whsec_".',
+					};
+				}
+
+				const base64Part = webhookSecret.slice('whsec_'.length);
+				try {
+					const decoded = Buffer.from(base64Part, 'base64');
+					if (decoded.length === 0) {
+						throw new Error('Empty key');
+					}
+				} catch {
+					return {
+						status: 'Error',
+						message:
+							'Invalid secret. The part after "whsec_" is not valid base64.',
+					};
+				}
+
+				return {
+					status: 'OK',
+					message: 'Webhook signing secret format is valid.',
+				};
+			},
+		},
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
